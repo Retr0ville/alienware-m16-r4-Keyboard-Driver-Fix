@@ -1,6 +1,17 @@
 # Helper script to install the USB Descriptor Fix as a startup task
 # Run this once to set up the automatic startup functionality
 
+# Self-elevate if not running as administrator
+$isAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+
+if (-not $isAdmin) {
+    Write-Host "Administrator privileges required. Elevating..." -ForegroundColor Yellow
+    $psiArgs = "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`""
+    $process = Start-Process powershell -ArgumentList $psiArgs -Verb RunAs -PassThru
+    $process.WaitForExit()
+    exit $process.ExitCode
+}
+
 $ScriptPath = Join-Path $PSScriptRoot "UsbDescriptorFix.ps1"
 $TaskName = "UsbDescriptorFix_Startup"
 $TaskDescription = "Detects and removes USB descriptor failed devices on startup"
